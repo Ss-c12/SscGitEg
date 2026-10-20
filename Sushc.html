@@ -1,28 +1,73 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<title>小帅哥</title>
-<style>
-body{font-family:sans-serif;background:linear-gradient(135deg,#e0eafc,#cfdef3);display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;color:#333}
-.box{background:#fff9;padding:30px;border-radius:16px;box-shadow:0 8px 20px #0001;max-width:500px;width:90%}
-header,nav,footer{text-align:center}
-nav a{margin:0 10px;color:#667eea;text-decoration:none}
-main{margin:20px 0;text-align: center;}
-main img{display:block;margin:0 auto;max-width:100%;border-radius:10px}
-footer{color:#999;font-size:14px;border-top:1px solid #eee;padding-top:15px}
-</style>
+    <meta charset="UTF-8">
+    <title>小帅哥</title>
+    <style>
+        body { font-family: sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
+        .box { background: #fff9; padding: 30px; border-radius: 16px; box-shadow: 0 8px 20px #0001; max-width: 650px; width: 90%; }
+        header, nav, footer { text-align: center; }
+        nav a { margin: 0 10px; color: #667eea; text-decoration: none; }
+        
+        /* 修改 main 的布局为左右结构 */
+        main { margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 30px; }
+        
+        /* 左侧幸运日面板样式 */
+        .lucky-panel { display: flex; flex-direction: column; align-items: center; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #eee; min-width: 150px; }
+        .lucky-panel h3 { margin: 0 0 15px 0; font-size: 16px; color: #555; }
+        .lucky-panel input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; outline: none; cursor: pointer; }
+        .lucky-panel button { margin-top: 15px; padding: 8px 20px; border-radius: 5px; border: none; background: #667eea; color: white; cursor: pointer; transition: 0.3s; }
+        .lucky-panel button:hover { background: #5568c9; }
+        #lucky-result { margin-top: 15px; font-weight: bold; color: #667eea; font-size: 14px; }
+
+        /* 右侧图片文字容器 */
+        .img-container { display: flex; flex-direction: column; align-items: center; }
+        main img { display: block; max-width: 100%; border-radius: 10px; }
+        main p { margin: 10px 0 0 0; }
+        
+        footer { color: #999; font-size: 14px; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
 </head>
 <body>
-<div class="box">
-<header><h1>双生</h1></header>
-<nav><a href="#">首页</a><a href="#">关于</a><a href="#">联系</a></nav>
-<main>
-<img src="D:\君の膵臓を食べたい\1.jpg" alt="君の膵臓を食べたい" width = 200>
-<p>君の膵臓を食べたい</p>
-<p>Sscxmx</p>
-</main>
-<footer>美美的小站</footer>
-</div>
+    <div class="box">
+        <header><h1>双生</h1></header>
+        <nav><a href="#">首页</a><a href="#">关于</a><a href="#">联系</a></nav>
+        
+        <main>
+            <!-- 第一步：左侧选择面板 -->
+            <div class="lucky-panel">
+                <h3>选择幸运日</h3>
+                <input type="date" id="date-picker">
+                <button id="save-btn">确定选择</button>
+                <p id="lucky-result">尚未选择</p>
+            </div>
+
+            <!-- 右侧原内容 -->
+            <div class="img-container">
+                <!-- 注意：确保你的图片路径是对的 -->
+                <img src="D:\君の膵臓を食べたい\1.jpg" alt="君の膵臓を食べたい" width="200">
+                <p>君の膵臓を食べたい</p>
+                <p>Sscxmx</p>
+            </div>
+        </main>
+
+        <footer>美美的小站</footer>
+    </div>
+
+    <!-- 第一步：JS 点击事件 -->
+    <script>
+        const datePicker = document.getElementById('date-picker');
+        const saveBtn = document.getElementById('save-btn');
+        const luckyResult = document.getElementById('lucky-result');
+
+        saveBtn.addEventListener('click', () => {
+            const selectedDate = datePicker.value;
+            if (selectedDate) {
+                luckyResult.textContent = `幸运日: ${selectedDate}`;
+            } else {
+                alert('请先选择一个日期！');
+            }
+        });
+    </script>
 </body>
 </html>
