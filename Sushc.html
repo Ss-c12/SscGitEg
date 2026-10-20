@@ -2,27 +2,42 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小帅哥</title>
     <style>
         body { font-family: sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
-        .box { background: #fff9; padding: 30px; border-radius: 16px; box-shadow: 0 8px 20px #0001; max-width: 650px; width: 90%; }
+        .box { background: #fff9; padding: 30px; border-radius: 16px; box-shadow: 0 8px 20px #0001; max-width: 700px; width: 90%; }
         header, nav, footer { text-align: center; }
         nav a { margin: 0 10px; color: #667eea; text-decoration: none; }
         
         main { margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 30px; }
         
-        .lucky-panel { display: flex; flex-direction: column; align-items: center; background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #eee; min-width: 150px; }
-        .lucky-panel h3 { margin: 0 0 15px 0; font-size: 16px; color: #555; }
-        .lucky-panel input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; outline: none; cursor: pointer; }
-        .lucky-panel button { margin-top: 15px; padding: 8px 20px; border-radius: 5px; border: none; background: #667eea; color: white; cursor: pointer; transition: 0.3s; }
-        .lucky-panel button:hover { background: #5568c9; }
-        #lucky-result { margin-top: 15px; font-weight: bold; color: #667eea; font-size: 14px; }
+        /* 左侧面板最终美化 */
+        .lucky-panel { display: flex; flex-direction: column; align-items: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eaeaea; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 160px; }
+        .lucky-panel h3 { margin: 0 0 15px 0; font-size: 15px; color: #444; }
+        .lucky-panel input { padding: 8px; border-radius: 6px; border: 1px solid #ccc; outline: none; cursor: pointer; width: 100%; box-sizing: border-box; }
+        
+        /* 按钮组布局 */
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .lucky-panel button { flex: 1; padding: 8px 0; border-radius: 6px; border: none; cursor: pointer; transition: 0.3s; font-size: 13px; }
+        .btn-save { background: #667eea; color: white; }
+        .btn-save:hover { background: #5568c9; }
+        .btn-clear { background: #ff6b6b; color: white; display: none; /* 默认隐藏，有日期时才显示 */ }
+        .btn-clear:hover { background: #ee5253; }
+        
+        #lucky-result { margin-top: 15px; font-weight: bold; color: #667eea; font-size: 14px; text-align: center; word-break: break-all; }
 
         .img-container { display: flex; flex-direction: column; align-items: center; }
-        main img { display: block; max-width: 100%; border-radius: 10px; }
-        main p { margin: 10px 0 0 0; }
+        main img { display: block; max-width: 100%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        main p { margin: 10px 0 0 0; font-size: 15px; }
         
-        footer { color: #999; font-size: 14px; border-top: 1px solid #eee; padding-top: 15px; }
+        footer { color: #999; font-size: 14px; border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px; }
+
+        /* 手机端适配：屏幕过窄时，改为上下排列 */
+        @media (max-width: 600px) {
+            main { flex-direction: column-reverse; } 
+            .lucky-panel { width: 100%; box-sizing: border-box; }
+        }
     </style>
 </head>
 <body>
@@ -31,13 +46,18 @@
         <nav><a href="#">首页</a><a href="#">关于</a><a href="#">联系</a></nav>
         
         <main>
+            <!-- 左侧选择面板 -->
             <div class="lucky-panel">
-                <h3>选择幸运日</h3>
+                <h3>🔮 选择幸运日</h3>
                 <input type="date" id="date-picker">
-                <button id="save-btn">确定选择</button>
+                <div class="btn-group">
+                    <button id="save-btn" class="btn-save">保存</button>
+                    <button id="clear-btn" class="btn-clear">清除</button>
+                </div>
                 <p id="lucky-result">尚未选择</p>
             </div>
 
+            <!-- 右侧原内容 -->
             <div class="img-container">
                 <img src="D:\君の膵臓を食べたい\1.jpg" alt="君の膵臓を食べたい" width="200">
                 <p>君の膵臓を食べたい</p>
@@ -48,31 +68,51 @@
         <footer>美美的小站</footer>
     </div>
 
-    <!-- 第二步：JS 加入 localStorage 保存 -->
+    <!-- 第三步：JS 最终完善版 -->
     <script>
         const datePicker = document.getElementById('date-picker');
         const saveBtn = document.getElementById('save-btn');
+        const clearBtn = document.getElementById('clear-btn');
         const luckyResult = document.getElementById('lucky-result');
 
-        // 页面加载时，读取之前保存的日期
+        // 更新界面的通用函数
+        function updateUI(dateValue) {
+            if (dateValue) {
+                datePicker.value = dateValue;
+                luckyResult.textContent = `幸运日: ${dateValue}`;
+                clearBtn.style.display = 'block'; // 显示清除按钮
+            } else {
+                datePicker.value = '';
+                luckyResult.textContent = '尚未选择';
+                clearBtn.style.display = 'none'; // 隐藏清除按钮
+            }
+        }
+
+        // 页面加载时，从本地存储读取
         window.onload = function() {
             const savedDate = localStorage.getItem('myLuckyDay');
             if (savedDate) {
-                datePicker.value = savedDate; 
-                luckyResult.textContent = `幸运日: ${savedDate}`; 
+                updateUI(savedDate);
             }
         };
 
-        // 点击保存按钮
+        // 点击保存
         saveBtn.addEventListener('click', () => {
             const selectedDate = datePicker.value;
             if (selectedDate) {
-                luckyResult.textContent = `幸运日: ${selectedDate}`;
-                // 核心：保存到浏览器的 localStorage 中
-                localStorage.setItem('myLuckyDay', selectedDate); 
-                alert('幸运日已成功保存！');
+                localStorage.setItem('myLuckyDay', selectedDate);
+                updateUI(selectedDate);
+                alert('幸运日已成功保存！✨');
             } else {
-                alert('请先选择一个日期！');
+                alert('请先在日历中选择一个日期哦！');
+            }
+        });
+
+        // 点击清除
+        clearBtn.addEventListener('click', () => {
+            if (confirm('确定要清除保存的幸运日吗？')) {
+                localStorage.removeItem('myLuckyDay'); // 删除本地存储
+                updateUI(null); // 重置 UI
             }
         });
     </script>
