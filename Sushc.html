@@ -7,8 +7,8 @@
     <style>
         body { font-family: sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
         .box { background: #fff9; padding: 30px; border-radius: 16px; box-shadow: 0 8px 20px #0001; max-width: 700px; width: 90%; }
-        header, nav, footer { text-align: center; }
-        nav a { margin: 0 10px; color: #667eea; text-decoration: none; }
+        /* 删除了 nav 相关的样式 */
+        header, footer { text-align: center; }
         
         main { margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 30px; }
         
@@ -41,7 +41,6 @@
 <body>
     <div class="box">
         <header><h1>双生</h1></header>
-        <nav><a href="#">首页</a><a href="#">关于</a><a href="#">联系</a></nav>
         
         <main>
             <div class="lucky-panel">
@@ -49,12 +48,9 @@
                 <input type="date" id="date-picker">
                 <div class="btn-group">
                     <button id="save-btn" class="btn-save">保存</button>
-                    <!-- 版本A：添加全部清除按钮 -->
-                    
+                    <!-- 注意：这里两个按钮 id 重复了，建议后续修改 -->
                     <button id="clear-all-btn" class="btn-clear-all">逐个清除</button>
-
                     <button id="clear-all-btn" class="btn-clear-all">全部清除</button>
-                    
                 </div>
                 <p id="lucky-result">尚未选择</p>
             </div>
