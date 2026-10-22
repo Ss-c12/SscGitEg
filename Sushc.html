@@ -7,7 +7,6 @@
     <style>
         body { font-family: sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
         .box { background: #fff9; padding: 30px; border-radius: 16px; box-shadow: 0 8px 20px #0001; max-width: 700px; width: 90%; }
-        /* 删除了 nav 相关的样式 */
         header, footer { text-align: center; }
         
         main { margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 30px; }
@@ -20,9 +19,12 @@
         .lucky-panel button { padding: 8px 0; border-radius: 6px; border: none; cursor: pointer; transition: 0.3s; font-size: 13px; width: 100%; }
         .btn-save { background: #667eea; color: white; }
         .btn-save:hover { background: #5568c9; }
-        /* 版本A特有的样式：全部清除按钮 */
         .btn-clear-all { background: #ff6b6b; color: white; }
         .btn-clear-all:hover { background: #ee5253; }
+        
+        /* 过期清除按钮的专属样式 */
+        .btn-clear-expired { background: #95a5a6; color: white; }
+        .btn-clear-expired:hover { background: #7f8c8d; }
         
         #lucky-result { margin-top: 15px; font-weight: bold; color: #667eea; font-size: 14px; text-align: center; word-break: break-all; }
 
@@ -48,9 +50,13 @@
                 <input type="date" id="date-picker">
                 <div class="btn-group">
                     <button id="save-btn" class="btn-save">保存</button>
-                    <!-- 注意：这里两个按钮 id 重复了，建议后续修改 -->
-                    <button id="clear-all-btn" class="btn-clear-all">逐个清除</button>
+                    
+                    <!-- 修复了之前两个id一样的bug -->
+                    <button id="delete-one-btn" class="btn-clear-all">逐个清除</button>
                     <button id="clear-all-btn" class="btn-clear-all">全部清除</button>
+                    
+                    <!-- 新增：过期清除按钮 -->
+                    <button id="clear-expired-btn" class="btn-clear-expired">清除过期日</button>
                 </div>
                 <p id="lucky-result">尚未选择</p>
             </div>
@@ -68,7 +74,9 @@
     <script>
         const datePicker = document.getElementById('date-picker');
         const saveBtn = document.getElementById('save-btn');
+        const deleteOneBtn = document.getElementById('delete-one-btn');
         const clearAllBtn = document.getElementById('clear-all-btn');
+        const clearExpiredBtn = document.getElementById('clear-expired-btn'); // 获取新按钮
         const luckyResult = document.getElementById('lucky-result');
 
         function updateUI(dateValue) {
@@ -96,12 +104,50 @@
             }
         });
 
-        // 版本A特有逻辑：全部清除
+        // 逐个清除
+        deleteOneBtn.addEventListener('click', () => {
+            const currentSaved = localStorage.getItem('myLuckyDay');
+            if (currentSaved) {
+                if (confirm(`确定要删除这条记录吗：${currentSaved}？`)) {
+                    localStorage.removeItem('myLuckyDay'); 
+                    updateUI(null);
+                    alert('该条记录已删除！');
+                }
+            } else {
+                alert('当前没有保存的记录可以删除哦！');
+            }
+        });
+
+        // 全部清除
         clearAllBtn.addEventListener('click', () => {
             if (confirm('确定要清空所有幸运日记录吗？')) {
-                localStorage.clear(); // 暴力清空
+                localStorage.clear(); 
                 updateUI(null); 
                 alert('已全部清除！');
+            }
+        });
+
+        // 清除过期时间逻辑
+        clearExpiredBtn.addEventListener('click', () => {
+            const savedDateStr = localStorage.getItem('myLuckyDay');
+            
+            if (!savedDateStr) {
+                alert('当前没有保存的幸运日哦！');
+                return;
+            }
+
+            const savedDate = new Date(savedDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+
+            if (savedDate < today) {
+                if (confirm(`你的幸运日 ${savedDateStr} 已经过期啦，要清除它吗？`)) {
+                    localStorage.removeItem('myLuckyDay'); 
+                    updateUI(null); 
+                    alert('已清除过期的幸运日！');
+                }
+            } else {
+                alert(`你的幸运日 ${savedDateStr} 还没过期，继续好运吧！🍀`);
             }
         });
     </script>
