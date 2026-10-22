@@ -11,7 +11,7 @@
         
         main { margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 30px; }
         
-        .lucky-panel { display: flex; flex-direction: column; align-items: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eaeaea; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 160px; }
+        .lucky-panel { display: flex; flex-direction: column; align-items: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eaeaea; box-shadow: 0 4px 10px rgba(0,0,0,0.05); min-width: 180px; }
         .lucky-panel h3 { margin: 0 0 15px 0; font-size: 15px; color: #444; }
         .lucky-panel input { padding: 8px; border-radius: 6px; border: 1px solid #ccc; outline: none; cursor: pointer; width: 100%; box-sizing: border-box; }
         
@@ -21,12 +21,15 @@
         .btn-save:hover { background: #5568c9; }
         .btn-clear-all { background: #ff6b6b; color: white; }
         .btn-clear-all:hover { background: #ee5253; }
-        
-        /* 过期清除按钮的专属样式 */
         .btn-clear-expired { background: #95a5a6; color: white; }
         .btn-clear-expired:hover { background: #7f8c8d; }
         
         #lucky-result { margin-top: 15px; font-weight: bold; color: #667eea; font-size: 14px; text-align: center; word-break: break-all; }
+        
+        /* 新增：统计面板的样式 */
+        #stats-result { margin-top: 10px; font-size: 13px; font-weight: normal; text-align: center; line-height: 1.6; border-top: 1px dashed #ccc; padding-top: 10px; width: 100%; }
+        .text-valid { color: #28a745; font-weight: bold; }
+        .text-expired { color: #dc3545; font-weight: bold; }
 
         .img-container { display: flex; flex-direction: column; align-items: center; }
         main img { display: block; max-width: 100%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -50,15 +53,14 @@
                 <input type="date" id="date-picker">
                 <div class="btn-group">
                     <button id="save-btn" class="btn-save">保存</button>
-                    
-                    <!-- 修复了之前两个id一样的bug -->
                     <button id="delete-one-btn" class="btn-clear-all">逐个清除</button>
                     <button id="clear-all-btn" class="btn-clear-all">全部清除</button>
-                    
-                    <!-- 新增：过期清除按钮 -->
                     <button id="clear-expired-btn" class="btn-clear-expired">清除过期日</button>
                 </div>
                 <p id="lucky-result">尚未选择</p>
+                
+                <!-- 统计结果显示区域 -->
+                <p id="stats-result"></p>
             </div>
 
             <div class="img-container">
@@ -76,41 +78,101 @@
         const saveBtn = document.getElementById('save-btn');
         const deleteOneBtn = document.getElementById('delete-one-btn');
         const clearAllBtn = document.getElementById('clear-all-btn');
-        const clearExpiredBtn = document.getElementById('clear-expired-btn'); // 获取新按钮
+        const clearExpiredBtn = document.getElementById('clear-expired-btn');
         const luckyResult = document.getElementById('lucky-result');
+        const statsResult = document.getElementById('stats-result');
 
-        function updateUI(dateValue) {
-            if (dateValue) {
-                datePicker.value = dateValue;
-                luckyResult.textContent = `幸运日: ${dateValue}`;
+        // 获取本地数据（兼容你之前存单条数据的旧代码）
+        function getLuckyDays() {
+            const multiDays = localStorage.getItem('myLuckyDays');
+            if (multiDays) return JSON.parse(multiDays);
+            
+            // 兼容旧数据
+            const singleDay = localStorage.getItem('myLuckyDay');
+            if (singleDay) {
+                localStorage.removeItem('myLuckyDay');
+                const arr = [singleDay];
+                localStorage.setItem('myLuckyDays', JSON.stringify(arr));
+                return arr;
+            }
+            return [];
+        }
+
+        // 保存数据到本地
+        function setLuckyDays(days) {
+            localStorage.setItem('myLuckyDays', JSON.stringify(days));
+        }
+
+        // 核心渲染与统计函数
+        function updateUI() {
+            const days = getLuckyDays();
+            
+            if (days.length > 0) {
+                luckyResult.textContent = `共保存了 ${days.length} 个幸运日`;
+                
+                // 获取今天的时间并归零，用于准确比较
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+                
+                let expiredCount = 0;
+                let validCount = 0;
+
+                // 遍历统计
+                days.forEach(dateStr => {
+                    const d = new Date(dateStr);
+                    if (d < today) {
+                        expiredCount++;
+                    } else {
+                        validCount++;
+                    }
+                });
+
+                // 渲染统计文本
+                statsResult.innerHTML = `
+                    <span class="text-valid">🟢 未过期: ${validCount} 个</span><br>
+                    <span class="text-expired">🔴 已过期: ${expiredCount} 个</span>
+                `;
             } else {
-                datePicker.value = '';
                 luckyResult.textContent = '尚未选择';
+                statsResult.innerHTML = ''; // 清空统计
             }
         }
 
+        // 页面加载时初始化
         window.onload = function() {
-            const savedDate = localStorage.getItem('myLuckyDay');
-            if (savedDate) updateUI(savedDate);
+            updateUI();
         };
 
+        // --- 按钮操作逻辑 ---
+
+        // 保存
         saveBtn.addEventListener('click', () => {
             const selectedDate = datePicker.value;
             if (selectedDate) {
-                localStorage.setItem('myLuckyDay', selectedDate);
-                updateUI(selectedDate);
+                const days = getLuckyDays();
+                // 去重判断
+                if (!days.includes(selectedDate)) {
+                    days.push(selectedDate);
+                    setLuckyDays(days);
+                    updateUI();
+                    alert('幸运日已添加！');
+                } else {
+                    alert('这个日期已经保存过啦！');
+                }
             } else {
                 alert('请先选择一个日期哦！');
             }
         });
 
-        // 逐个清除
+        // 逐个清除（删除最新添加的一条）
         deleteOneBtn.addEventListener('click', () => {
-            const currentSaved = localStorage.getItem('myLuckyDay');
-            if (currentSaved) {
-                if (confirm(`确定要删除这条记录吗：${currentSaved}？`)) {
-                    localStorage.removeItem('myLuckyDay'); 
-                    updateUI(null);
+            let days = getLuckyDays();
+            if (days.length > 0) {
+                const lastDay = days[days.length - 1];
+                if (confirm(`确定要删除最新添加的幸运日吗：${lastDay}？`)) {
+                    days.pop(); // 删掉数组最后一条
+                    setLuckyDays(days);
+                    updateUI();
                     alert('该条记录已删除！');
                 }
             } else {
@@ -121,33 +183,39 @@
         // 全部清除
         clearAllBtn.addEventListener('click', () => {
             if (confirm('确定要清空所有幸运日记录吗？')) {
-                localStorage.clear(); 
-                updateUI(null); 
+                localStorage.removeItem('myLuckyDays'); 
+                updateUI(); 
                 alert('已全部清除！');
             }
         });
 
-        // 清除过期时间逻辑
+        // 清除过期日
         clearExpiredBtn.addEventListener('click', () => {
-            const savedDateStr = localStorage.getItem('myLuckyDay');
-            
-            if (!savedDateStr) {
+            const days = getLuckyDays();
+            if (days.length === 0) {
                 alert('当前没有保存的幸运日哦！');
                 return;
             }
 
-            const savedDate = new Date(savedDateStr);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); 
+            today.setHours(0, 0, 0, 0);
 
-            if (savedDate < today) {
-                if (confirm(`你的幸运日 ${savedDateStr} 已经过期啦，要清除它吗？`)) {
-                    localStorage.removeItem('myLuckyDay'); 
-                    updateUI(null); 
+            // 过滤出未过期的（保留日期 >= 今天的）
+            const validDays = days.filter(dateStr => {
+                const d = new Date(dateStr);
+                return d >= today;
+            });
+
+            const expiredCount = days.length - validDays.length;
+
+            if (expiredCount > 0) {
+                if (confirm(`发现 ${expiredCount} 个过期的幸运日，要清除它们吗？`)) {
+                    setLuckyDays(validDays);
+                    updateUI();
                     alert('已清除过期的幸运日！');
                 }
             } else {
-                alert(`你的幸运日 ${savedDateStr} 还没过期，继续好运吧！🍀`);
+                alert(`你的幸运日都还没过期，继续好运吧！🍀`);
             }
         });
     </script>
